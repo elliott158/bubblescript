@@ -1,4 +1,4 @@
-module Codegen (showC) where
+module Codegen (codegen) where
 
 import Struct
 
@@ -16,6 +16,9 @@ showC (List (op:args)) = case (op) of
   (Atom "-") -> makeOp "-" args
   (Atom "*") -> makeOp "*" args
   (Atom "/") -> makeOp "/" args
+
+  (Atom "=") -> makeOp "==" args
+  (Atom "!=") -> makeOp "!=" args
 
   (Atom "add") -> makeOp "+" args
   (Atom "subtract") -> makeOp "-" args
@@ -40,3 +43,9 @@ showC (List (op:args)) = case (op) of
   
   (List _) -> concat (map showC (op:args))
   _ -> ""
+
+showX86 :: LispVal -> String
+showX86 x = ""
+
+codegen :: LispVal -> String
+codegen = showC

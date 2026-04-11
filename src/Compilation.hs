@@ -7,7 +7,7 @@ import Text.ParserCombinators.Parsec (parse)
 
 compileCode :: String -> String
 compileCode code = case parse parseExpr "lisp" code of
-                 Right val -> (showC val)
+                 Right val -> (codegen val)
                  Left _ -> ""
 
 parseCodePrint :: String -> IO ()
@@ -19,5 +19,5 @@ parseCodePrint code = do
 compileCodePrint :: String -> IO ()
 compileCodePrint code = do
   case parse parseExpr "lisp" code of
-    Right val -> (putStrLn (showC val))
+    Right val -> (putStrLn (codegen val))
     Left err -> (hPutStrLn stderr ("Error: " ++ show err))
