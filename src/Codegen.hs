@@ -29,7 +29,7 @@ showC (List (op:args)) = case (op) of
   (Atom "or") -> makeOp "||" args
   (Atom "not") -> makeOp "!" args
   
-  (Atom "print") -> concat ["printf(", showC (args !! 0), ");"]
+  (Atom "print") -> concat ["puts(", showC (args !! 0), ");"]
   (Atom "defun") -> concat [showC (args !! 1), " ", showC (args !! 0), "(){\n", showC (args !! 2), "\n}\n"]
   (Atom "type") -> (case (args !! 0) of
                       (Atom "i4") -> "int"
@@ -43,9 +43,6 @@ showC (List (op:args)) = case (op) of
   
   (List _) -> concat (map showC (op:args))
   _ -> ""
-
-showX86 :: LispVal -> String
-showX86 x = ""
 
 codegen :: LispVal -> String
 codegen = showC
