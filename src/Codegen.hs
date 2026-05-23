@@ -5,6 +5,9 @@ import Struct
 makeOp :: String -> [LispVal] -> String
 makeOp op args = concat [showC (args !! 0), " ", op, " ", showC (args !! 1)]
 
+wrapParens :: String -> String
+wrapParens x = "(" ++ x ++ ")"
+
 showC :: LispVal -> String
 showC (Atom x) = x
 showC (Number x) = show x
@@ -44,5 +47,31 @@ showC (List (op:args)) = case (op) of
   (List _) -> concat (map showC (op:args))
   _ -> ""
 
+showHs :: LispVal -> String
+showHs (Atom x) = x
+showHs (Number x) = show x
+showHs (String x) = "\"" ++ x ++ "\""
+showHs (Bool x) = if x then "true" else "false"
+showHs (List []) = ""
+showHs (List (op:args)) = case (op) of
+       (Atom "+") -> makeOp "+" args
+       (Atom "-") -> makeOp "-" args
+       (Atom "*") -> makeOp "*" args
+       (Atom "/") -> makeOp "/" args
+
+       (Atom "=") -> wrapParens $ makeOp "==" args
+       (Atom "!=") -> wrapParens $ makeOp "/=" args
+
+       (Atom "&&") -> wrapParens $ makeOp "&&" args
+       (Atom "||") -> wrapParens $ makeOp "||" args
+       (Atom "!") -> wrapParens $ makeOp "!" args
+
+       (Atom "print") -> concat ["putStrLn ", showHs (args !! 0)]
+       (Atom "defun") -> concat [showHs (args !! 0), " = " , showHs (args !! 1)]
+
+       (Atom "if") -> concat ["if ", showHs (args !! 0), " then", showHs (args !! 1), " else ", showHs (args !! 2)]
+
+       (List _) -> concat (map showHs (op:args))
+
 codegen :: LispVal -> String
-codegen = showC
+codegen = showHs
