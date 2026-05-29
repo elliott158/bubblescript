@@ -3,7 +3,7 @@ module Codegen (codegen) where
 import Struct
 
 makeOp :: String -> [LispVal] -> String
-makeOp op args = concat [showC (args !! 0), " ", op, " ", showC (args !! 1)]
+makeOp op args = concat [codegen (args !! 0), " ", op, " ", codegen (args !! 1)]
 
 wrapParens :: String -> String
 wrapParens x = "(" ++ x ++ ")"
@@ -45,7 +45,12 @@ showC (List (op:args)) = case (op) of
   -- (Atom "include") -> includeFile (showC $ args !! 0)
   
   (List _) -> concat (map showC (op:args))
-  _ -> ""
+  _ -> "" 
+
+showArgs :: LispVal -> String
+showArgs (List xs) = " " ++ concat (map showArgs xs)
+showArgs (Atom x) = x
+showArgs _ = ""
 
 showHs :: LispVal -> String
 showHs (Atom x) = x
@@ -67,11 +72,14 @@ showHs (List (op:args)) = case (op) of
        (Atom "!") -> wrapParens $ makeOp "!" args
 
        (Atom "print") -> concat ["putStrLn ", showHs (args !! 0)]
-       (Atom "defun") -> concat [showHs (args !! 0), " = " , showHs (args !! 1)]
+       (Atom "defun") -> concat [showHs (args !! 0), showArgs (args !! 1), " = " , showHs (args !! 2)]
 
-       (Atom "if") -> concat ["if ", showHs (args !! 0), " then", showHs (args !! 1), " else ", showHs (args !! 2)]
+       (Atom "if") -> concat ["if ", showHs (args !! 0), " then (", showHs (args !! 1), ") else (", showHs (args !! 2), ")"]
 
        (List _) -> concat (map showHs (op:args))
+       (Atom _) -> concat ["(", showHs (op), " ", concat (map showHs args), ")"]
+       (Number _) -> showHs op
+
 
 codegen :: LispVal -> String
 codegen = showHs
