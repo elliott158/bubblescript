@@ -59,10 +59,10 @@ showHs (String x) = "\"" ++ x ++ "\""
 showHs (Bool x) = if x then "true" else "false"
 showHs (List []) = ""
 showHs (List (op:args)) = case (op) of
-       (Atom "+") -> makeOp "+" args
-       (Atom "-") -> makeOp "-" args
-       (Atom "*") -> makeOp "*" args
-       (Atom "/") -> makeOp "/" args
+       (Atom "+") -> wrapParens $ makeOp "+" args
+       (Atom "-") -> wrapParens $ makeOp "-" args
+       (Atom "*") -> wrapParens $ makeOp "*" args
+       (Atom "/") -> wrapParens $ makeOp "/" args
 
        (Atom "=") -> wrapParens $ makeOp "==" args
        (Atom "!=") -> wrapParens $ makeOp "/=" args
