@@ -8,4 +8,4 @@ main :: IO ()
 main = do
   code <- getContents
   args <- getArgs
-  if ("--parse" `elem` args) then (parseCodePrint code) else (compileCodePrint code)
+  if ("-p" `elem` args) then (parseCodePrint code) else (compileCodePrint code)
