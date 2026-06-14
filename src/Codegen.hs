@@ -80,6 +80,5 @@ showHs (List (op:args)) = case (op) of
        (Atom _) -> concat ["(", showHs (op), " ", concat (map showHs args), ")"]
        (Number _) -> showHs op
 
-
 codegen :: LispVal -> String
 codegen = showHs

@@ -73,3 +73,6 @@ parseExpr =  parseAtom
          <|> parseString
          <|> parseNumber
          <|> parseFullList
+
+parseExprs :: Parser [LispVal]
+parseExprs = many1 parseExpr
