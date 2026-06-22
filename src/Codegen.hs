@@ -42,7 +42,7 @@ showHs (List (op:args)) = case (op) of
 
        (Atom "&&") -> wrapParens $ makeOp "&&" args
        (Atom "||") -> wrapParens $ makeOp "||" args
-       (Atom "!") -> wrapParens $ makeOp "!" args
+       (Atom "!") -> wrapParens $ "not " ++ (showHs $ args !! 0)
 
        (Atom "print") -> concat ["putStrLn ", showHs (args !! 0), "\n"]
        (Atom "defun") -> defun args
