@@ -6,6 +6,11 @@ data LispVal = Atom String
              | String String
              | Bool Bool
 
+data Env = Env {
+       defuns :: [String]
+     , generated :: String
+}
+
 instance Show LispVal where show = showVal
 
 showVal :: LispVal -> String
