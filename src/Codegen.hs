@@ -25,6 +25,18 @@ defun args = concat [showHs (args !! 0), showArgs (args !! 1), defunTail args]
 addTab :: String -> String
 addTab x = (take 4 $ repeat ' ') ++ x
 
+addDefuns :: Env -> String -> Env
+addDefuns env x = env { defuns = (defuns env) ++ [x] }
+
+addIncludes :: Env -> String -> Env
+addIncludes env x = env { includes = (defuns env) ++ [x] }
+
+getEnv :: Env -> LispVal -> Maybe Env
+getEnv env (List (op:args)) = case (op) of
+       (Atom "defun") -> Just $ addDefuns env (showHs $ args !! 0)
+       _ -> Nothing
+getEnv env _ = Nothing
+
 showHs :: LispVal -> String
 showHs (Atom x) = x
 showHs (Number x) = show x
