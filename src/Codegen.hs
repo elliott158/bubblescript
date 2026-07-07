@@ -14,28 +14,17 @@ showArgs _ = ""
 
 defunBody :: LispVal -> String
 defunBody (List xs) = concat $ map (addTab . showHs) xs
+defunBody _ = ""
 
 defun :: [LispVal] -> String
 defun args = concat [showHs (args !! 0), showArgs (args !! 1), defunTail args]
       where
-        defunTail args = case (showHs $ args !! 0) of
-                  "main" -> concat [" = do\n",  defunBody (args !! 2), "\n"]
-                  _ -> concat [" = ", showHs (args !! 2), "\n"]
+        defunTail xs = case (showHs $ xs !! 0) of
+                  "main" -> concat [" = do\n",  defunBody (xs !! 2), "\n"]
+                  _ -> concat [" = ", showHs (xs !! 2), "\n"]
 
 addTab :: String -> String
 addTab x = (take 4 $ repeat ' ') ++ x
-
-addDefuns :: Env -> String -> Env
-addDefuns env x = env { defuns = (defuns env) ++ [x] }
-
-addIncludes :: Env -> String -> Env
-addIncludes env x = env { includes = (defuns env) ++ [x] }
-
-getEnv :: Env -> LispVal -> Maybe Env
-getEnv env (List (op:args)) = case (op) of
-       (Atom "defun") -> Just $ addDefuns env (showHs $ args !! 0)
-       _ -> Nothing
-getEnv env _ = Nothing
 
 showHs :: LispVal -> String
 showHs (Atom x) = x
@@ -43,7 +32,7 @@ showHs (Number x) = show x
 showHs (String x) = "\"" ++ x ++ "\""
 showHs (Bool x) = if x then "true" else "false"
 showHs (List []) = ""
-showHs (List (op:args)) = case (op) of
+showHs (List (op:args)) = case op of
        (Atom "+") -> wrapParens $ makeOp "+" args
        (Atom "-") -> wrapParens $ makeOp "-" args
        (Atom "*") -> wrapParens $ makeOp "*" args
@@ -63,7 +52,9 @@ showHs (List (op:args)) = case (op) of
 
        (List _) -> concat (map showHs (op:args))
        (Atom _) -> concat ["(", showHs (op), " ", concat (map showHs args), ")"]
-       (Number _) -> showHs op       
+       (Number _) -> showHs op
+       (String _) -> showHs op
+       (Bool _) -> showHs op
 
 codegen :: LispVal -> String
 codegen = showHs
