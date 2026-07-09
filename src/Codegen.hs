@@ -21,7 +21,7 @@ outputEnv :: Env -> String -> Env -- set output of env
 outputEnv env x = env {generated = x}
 
 setInputEnv :: Env -> LispVal -> Env
-setInputEnv env x = env {inputEnv = x}
+setInputEnv env x = env {inputEnv = Just x}
 
 showHsEnvE :: Env -> LispVal -> Env
 showHsEnvE env x = showHs $ setInputEnv env x
@@ -33,8 +33,13 @@ mapShowHsEnv :: Env -> [LispVal] -> [String]
 mapShowHsEnv env (x:xs) = showHsEnv env x : mapShowHsEnv env xs
 mapShowHsEnv _ [] = []
 
+unwrapInputEnv :: Env -> LispVal
+unwrapInputEnv env = case (inputEnv env) of
+               Just x -> x
+               Nothing -> error "Env without input."
+
 showHs :: Env -> Env
-showHs env = case (inputEnv env) of
+showHs env = case (unwrapInputEnv env) of
        (Atom x) -> outputEnv env $ x
        (Number x) -> outputEnv env $ show x
        (String x) -> outputEnv env $ "\"" ++ x ++ "\""

@@ -8,8 +8,11 @@ data LispVal = Atom String
 
 data Env = Env {
        generated :: String
-     , inputEnv :: LispVal
+     , inputEnv :: Maybe LispVal
 }
+
+emptyEnv :: Env
+emptyEnv = Env {generated = "", inputEnv = Nothing}
 
 instance Show LispVal where show = showVal
 

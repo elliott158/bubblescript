@@ -1,30 +1,19 @@
 module Compilation where
 
---import Codegen
+import Codegen
 import Lexer
 import Struct
---import System.IO
-import Text.ParserCombinators.Parsec (parse)
+import Text.ParserCombinators.Parsec (parse, many1)
 import Text.Parsec.Error
 
-parseCode :: String -> Either Text.Parsec.Error.ParseError LispVal
-parseCode code = parse parseExpr "lisp" code
+parseCode :: String -> Either ParseError [LispVal]
+parseCode code = parse (many1 parseExpr) "lisp" code
 
-{-
+showParse :: Either ParseError [LispVal] -> IO ()
+showParse (Left x) = putStrLn $ show x
+showParse (Right x) = sequence_ $ map putStrLn $ map show x
+
 compileCode :: String -> String
-compileCode code = case parse parseExpr "lisp" code of
-                 Right val -> (codegen val)
+compileCode code = case parseCode code of
+                 Right val -> (codegen emptyEnv val)
                  Left _ -> ""
-                 
-codeOutput :: String -> (LispVal -> String) -> IO ()
-codeOutput code f = do
-           case parse parseExprs "lisp" code of
-                Right val -> (putStrLn $ concat (map f val))
-                Left err -> (hPutStrLn stderr ("Error: " ++ show err))
-
-parseCodePrint :: String -> IO ()
-parseCodePrint code = codeOutput code show
-
-compileCodePrint :: String -> IO ()
-compileCodePrint code = codeOutput code codegen
--}
