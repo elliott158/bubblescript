@@ -7,8 +7,8 @@ data LispVal = Atom String
              | Bool Bool
 
 data Env = Env {
-       defuns :: [String]
-     , generated :: String
+       generated :: String
+     , inputEnv :: LispVal
 }
 
 instance Show LispVal where show = showVal

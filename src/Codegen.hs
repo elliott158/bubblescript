@@ -2,59 +2,68 @@ module Codegen (codegen) where
 
 import Struct
 
-makeOp :: String -> [LispVal] -> String
-makeOp op args = concat [codegen (args !! 0), " ", op, " ", codegen (args !! 1)]
+makeOp :: Env -> String -> [LispVal] -> String
+makeOp env op args = concat [showHsEnv env (args !! 0), " ", op, " ", showHsEnv env (args !! 1)]
 
 wrapParens :: String -> String
 wrapParens x = "(" ++ x ++ ")"
 
-showArgs :: LispVal -> String
-showArgs (List (x:xs)) = concat [" ", showHs x, concat (map showArgs xs)]
-showArgs _ = ""
+showArgs :: Env -> LispVal -> String
+showArgs env (List (x:xs)) = concat [" ", showHsEnv env x, concat $ map (showArgs env) xs]
+showArgs _ _ = ""
 
-defunBody :: LispVal -> String
-defunBody (List xs) = concat $ map (addTab . showHs) xs
-defunBody _ = ""
-
-defun :: [LispVal] -> String
-defun args = concat [showHs (args !! 0), showArgs (args !! 1), defunTail args]
+defun :: Env -> [LispVal] -> String
+defun env args = concat [showHsEnv env (args !! 0), showArgs env (args !! 1), defunTail]
       where
-        defunTail xs = case (showHs $ xs !! 0) of
-                  "main" -> concat [" = do\n",  defunBody (xs !! 2), "\n"]
-                  _ -> concat [" = ", showHs (xs !! 2), "\n"]
+        defunTail = concat [" = ", showHsEnv env (args !! 2), "\n"]
 
-addTab :: String -> String
-addTab x = (take 4 $ repeat ' ') ++ x
+outputEnv :: Env -> String -> Env -- set output of env
+outputEnv env x = env {generated = x}
 
-showHs :: LispVal -> String
-showHs (Atom x) = x
-showHs (Number x) = show x
-showHs (String x) = "\"" ++ x ++ "\""
-showHs (Bool x) = if x then "true" else "false"
-showHs (List []) = ""
-showHs (List (op:args)) = case op of
-       (Atom "+") -> wrapParens $ makeOp "+" args
-       (Atom "-") -> wrapParens $ makeOp "-" args
-       (Atom "*") -> wrapParens $ makeOp "*" args
-       (Atom "/") -> wrapParens $ makeOp "/" args
+setInputEnv :: Env -> LispVal -> Env
+setInputEnv env x = env {inputEnv = x}
 
-       (Atom "=") -> wrapParens $ makeOp "==" args
-       (Atom "!=") -> wrapParens $ makeOp "/=" args
+showHsEnvE :: Env -> LispVal -> Env
+showHsEnvE env x = showHs $ setInputEnv env x
 
-       (Atom "&&") -> wrapParens $ makeOp "&&" args
-       (Atom "||") -> wrapParens $ makeOp "||" args
-       (Atom "!") -> wrapParens $ "not " ++ (showHs $ args !! 0)
+showHsEnv :: Env -> LispVal -> String
+showHsEnv env x = generated $ showHsEnvE env x
 
-       (Atom "print") -> concat ["print ", showHs (args !! 0), "\n"]
-       (Atom "defun") -> defun args
+mapShowHsEnv :: Env -> [LispVal] -> [String]
+mapShowHsEnv env (x:xs) = showHsEnv env x : mapShowHsEnv env xs
+mapShowHsEnv _ [] = []
 
-       (Atom "if") -> concat ["if ", showHs (args !! 0), " then (", showHs (args !! 1), ") else (", showHs (args !! 2), ")"]
+showHs :: Env -> Env
+showHs env = case (inputEnv env) of
+       (Atom x) -> outputEnv env $ x
+       (Number x) -> outputEnv env $ show x
+       (String x) -> outputEnv env $ "\"" ++ x ++ "\""
+       (Bool x) -> outputEnv env $ if x then "true" else "false"
+       (List []) -> outputEnv env $ ""
 
-       (List _) -> concat (map showHs (op:args))
-       (Atom _) -> concat ["(", showHs (op), " ", concat (map showHs args), ")"]
-       (Number _) -> showHs op
-       (String _) -> showHs op
-       (Bool _) -> showHs op
+       (List (op:args)) -> case op of
+             (Atom "+") -> outputEnv env $ wrapParens $ makeOp env "+" args
+             (Atom "-") -> outputEnv env $ wrapParens $ makeOp env "-" args
+             (Atom "*") -> outputEnv env $ wrapParens $ makeOp env "*" args
+             (Atom "/") -> outputEnv env $ wrapParens $ makeOp env "/" args
+       
+             (Atom "=") -> outputEnv env $ wrapParens $ makeOp env "==" args
+             (Atom "!=") -> outputEnv env $ wrapParens $ makeOp env "/=" args
 
-codegen :: LispVal -> String
-codegen = showHs
+             (Atom "&&") -> outputEnv env $ wrapParens $ makeOp env "&&" args
+             (Atom "||") -> outputEnv env $ wrapParens $ makeOp env "||" args
+             (Atom "!") -> outputEnv env $ wrapParens $ "not " ++ (showHsEnv env $ args !! 0)
+
+             (Atom "print") -> outputEnv env $ concat ["print ", showHsEnv env (args !! 0), "\n"]
+             (Atom "defun") -> outputEnv env $ defun env args
+
+             (Atom "if") -> outputEnv env $ concat ["if ", showHsEnv env (args !! 0), " then (", showHsEnv env (args !! 1), ") else (", showHsEnv env (args !! 2), ")"]
+
+             (List _) -> outputEnv env $ concat (mapShowHsEnv env (op:args))
+             (Atom _) -> outputEnv env $ concat ["(", showHsEnv env (op), " ", concat (mapShowHsEnv env args), ")"]
+             (Number _) -> outputEnv env $ showHsEnv env op
+             (String _) -> outputEnv env $ showHsEnv env op
+             (Bool _) -> outputEnv env $ showHsEnv env op
+
+codegen :: Env -> [LispVal] -> String
+codegen env xs = concat $ mapShowHsEnv env xs
