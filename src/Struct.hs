@@ -9,10 +9,13 @@ data LispVal = Atom String
 data Env = Env {
        generated :: String
      , inputEnv :: Maybe LispVal
+     , includes :: [String]
 }
 
 emptyEnv :: Env
-emptyEnv = Env {generated = "", inputEnv = Nothing}
+emptyEnv = Env {generated = "", inputEnv = Nothing, includes = []}
+
+instance Show Env where show = generated
 
 instance Show LispVal where show = showVal
 

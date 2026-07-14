@@ -1,3 +1,5 @@
+(include fibonacci.bubble)
+
 (defun main () (
        (print (fib 1))
        (print (fib 2))

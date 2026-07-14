@@ -18,6 +18,6 @@ executable bubble
       base,
       parsec
 
-    ghc-options: -Wall -Werror -Wcompat -Worphans
+    ghc-options: -Wall -Werror -Wcompat -Worphans -Wno-unused-top-binds
     
     default-language: Haskell2010

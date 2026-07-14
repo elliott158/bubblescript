@@ -5,7 +5,7 @@ import Control.Monad
 import Struct
 
 symbol :: Parser Char
-symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
+symbol = oneOf "!#$%&|*+-/:<=>?@^_~."
 
 spaces :: Parser ()
 spaces = skipMany1 space
@@ -75,4 +75,4 @@ parseExpr =  parseAtom
          <|> parseFullList
 
 parseExprs :: Parser [LispVal]
-parseExprs = many1 parseExpr
+parseExprs = sepBy1 parseExpr maybeWhitespace

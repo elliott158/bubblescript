@@ -1,19 +1,21 @@
+{-# LANGUAGE FlexibleInstances #-} 
+
 module Compilation where
 
 import Codegen
 import Lexer
 import Struct
-import Text.ParserCombinators.Parsec (parse, many1)
+import Text.ParserCombinators.Parsec (parse)
 import Text.Parsec.Error
 
 parseCode :: String -> Either ParseError [LispVal]
-parseCode code = parse (many1 parseExpr) "lisp" code
+parseCode code = parse parseExprs "lisp" code
 
-showParse :: Either ParseError [LispVal] -> IO ()
-showParse (Left x) = putStrLn $ show x
-showParse (Right x) = sequence_ $ map putStrLn $ map show x
+showParse :: Either ParseError [LispVal] -> String
+showParse (Left x) = show x
+showParse (Right x) = concat $ map show x
 
-compileCode :: String -> String
+compileCode :: String -> Env
 compileCode code = case parseCode code of
                  Right val -> (codegen emptyEnv val)
-                 Left _ -> ""
+                 Left _ -> emptyEnv
