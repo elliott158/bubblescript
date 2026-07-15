@@ -24,7 +24,7 @@ parseSingleComment = do
     _ <- string "//"
     _ <- manyTill anyChar newline
     return ()
-
+{-
 parseMultiComment :: Parser ()
 parseMultiComment = do
   _ <- string "/*"
@@ -35,6 +35,7 @@ parseSkipComments :: Parser ()
 parseSkipComments = do
   _ <- skipMany (parseSingleComment <|> parseMultiComment)
   return ()
+-}
 
 parseString :: Parser LispVal
 parseString = do
