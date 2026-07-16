@@ -19,18 +19,22 @@ whitespaces = skipMany1 (whitespaceChar)
 maybeWhitespace :: Parser ()
 maybeWhitespace = skipMany (whitespaceChar)
 
-parseSingleComment :: Parser String
-parseSingleComment = do
-    _ <- string "//"
-    manyTill anyChar newline
+parseComments :: Parser (Maybe LispVal)
+parseComments = do
+              _ <- skipMany comment
+              return Nothing
+                     where
+                          comment = try lineComment <|> try blockComment
 
-parseMultiComment :: Parser String
-parseMultiComment = do
-  _ <- string "/*"
-  manyTill anyChar (try (string "*/"))
+                          lineComment :: Parser ()
+                          lineComment = do
+                                      _ <- between (try (string "--")) (try (newline)) (many anyChar)
+                                      pure ()
 
-parseSkipComments :: Parser ()
-parseSkipComments = skipMany (parseSingleComment <|> parseMultiComment)
+                          blockComment :: Parser ()
+                          blockComment = do
+                                       _ <- between (try (string "{-")) (try (string "-}")) (many anyChar)
+                                       pure ()
 
 parseString :: Parser LispVal
 parseString = do
@@ -70,5 +74,10 @@ parseExpr =  parseAtom
          <|> parseNumber
          <|> parseFullList
 
+parseExprMaybe :: Parser (Maybe LispVal)
+parseExprMaybe = do
+               x <- parseExpr
+               return $ Just x
+
 parseExprs :: Parser [LispVal]
-parseExprs = sepBy1 parseExpr maybeWhitespace
+parseExprs = sepBy1 (parseExpr) maybeWhitespace
