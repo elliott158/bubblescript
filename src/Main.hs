@@ -9,14 +9,13 @@ import Codegen
 outputCompiled :: Env -> IO ()
 outputCompiled compiled = do
                included <- includeFiles compiled
-               putStrLn $ concat [included, show compiled]
+               let includedCode = show $ compileCode included
+               putStrLn $ concat [includedCode, show compiled]
 
 main :: IO ()
 main = do
   code <- getContents
   args <- getArgs
-  let parsed = parseCode code
-  let compiled = compileCode code
   if ("-p" `elem` args)
-  then (putStrLn $ showParse $ parsed)
-  else (outputCompiled compiled)
+  then (putStrLn $ showParse $ parseCode code)
+  else (outputCompiled $ compileCode code)
