@@ -24,7 +24,7 @@ digit :: Parser Char
 digit = oneOf $ ['0'..'9']
 
 sc :: Parser ()
-sc = L.space (void spaceChar) lineC blockC
+sc = L.space (void (spaceChar <|> tab <|> newline)) lineC blockC
   where lineC = L.skipLineComment "--"
         blockC = L.skipBlockComment "{-" "-}"
 
@@ -36,7 +36,10 @@ parseCode = parse (exprs <* eof) "<lisp>"
 -- parseCode = parse (sc *> exprs <* eof) "<lisp>"
 
 exprs :: Parser [Stmt]
-exprs = some expr
+exprs = do
+      _ <- sc
+      x <- sepEndBy expr sc
+      return x
 
 expr :: Parser Stmt
 expr = try pList
@@ -44,18 +47,21 @@ expr = try pList
    <|> try pString
    <|> try pInt
 
-parens :: Parser a -> Parser a
-parens = between (char '(') (char ')')
-
 pList :: Parser Stmt
-pList = parens insideList
-     where
-      insideList = liftM List $ sepEndBy expr sc
+pList = do
+      _ <- char '('
+      _ <- sc
+      x <- insideList
+      _ <- sc
+      _ <- char ')'
+      return x
+        where
+          insideList = liftM List $ sepEndBy expr sc
 
 pAtom :: Parser Stmt
 pAtom = do
      first <- letter <|> symbol
-     rest <- some $ letter <|> digit <|> symbol
+     rest <- many $ letter <|> digit <|> symbol
      let x = first:rest
      return $ Atom $ x
 
