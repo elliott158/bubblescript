@@ -1,83 +1,68 @@
 module Lexer where
 
-import Text.ParserCombinators.Parsec hiding (spaces)
-import Control.Monad
-import Struct
+import Struct (Stmt(..))
+
+import Control.Monad (void, liftM)
+import Data.Void (Void)
+
+import Text.Megaparsec
+import Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as L
+
+type Error = Void
+type Input = String
+
+type Parser = Parsec Error Input
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~."
 
-spaces :: Parser ()
-spaces = skipMany1 space
+letter :: Parser Char
+letter = oneOf $ ['a'..'z'] ++ ['A'..'Z']
 
-whitespaceChar :: Parser Char
-whitespaceChar = (space <|> tab <|> newline)
+digit :: Parser Char
+digit = oneOf $ ['0'..'9']
 
-whitespaces :: Parser ()
-whitespaces = skipMany1 (whitespaceChar)
+sc :: Parser ()
+sc = L.space (void spaceChar) lineC blockC
+  where lineC = L.skipLineComment "--"
+        blockC = L.skipBlockComment "{-" "-}"
 
-maybeWhitespace :: Parser ()
-maybeWhitespace = skipMany (whitespaceChar)
+lexeme :: Parser a -> Parser a
+lexeme = L.lexeme sc
 
-parseComments :: Parser (Maybe LispVal)
-parseComments = do
-              _ <- skipMany comment
-              return Nothing
-                     where
-                          comment = try lineComment <|> try blockComment
+surround :: Parser a -> Parser a
+surround p = do
+         _ <- sc
+         x <- p
+         _ <- sc
+         return x
 
-                          lineComment :: Parser ()
-                          lineComment = do
-                                      _ <- between (try (string "--")) (try (newline)) (many anyChar)
-                                      pure ()
+expr :: Parser Stmt
+expr = try pList
+   <|> try pAtom
+   <|> try pString
+   <|> try pInt
 
-                          blockComment :: Parser ()
-                          blockComment = do
-                                       _ <- between (try (string "{-")) (try (string "-}")) (many anyChar)
-                                       pure ()
+parens :: Parser a -> Parser a
+parens = between (lexeme $ char '(') (lexeme $ char ')')
 
-parseString :: Parser LispVal
-parseString = do
-                _ <- char '"'
-                x <- many (noneOf "\"")
-                _ <- char '"'
-                return $ String x
+pList :: Parser Stmt
+pList = parens insideList
+     where
+      insideList = liftM List $ sepEndBy expr sc
 
-parseAtom :: Parser LispVal
-parseAtom = do 
-              first <- letter <|> symbol
-              rest <- many (letter <|> digit <|> symbol)
-              let atom = first:rest
-              return $ case atom of 
-                         "true" -> Bool True
-                         "false" -> Bool False
-                         _ -> Atom atom
+pAtom :: Parser Stmt
+pAtom = do
+     first <- letter
+     rest <- some $ letter <|> digit <|> symbol
+     let x = first:rest
+     return $ Atom $ x
 
-parseNumber :: Parser LispVal
-parseNumber = liftM (Number . read) $ many1 digit
+pString :: Parser Stmt -- function name string is taken
+pString = do
+        xs <- between (char '"') (char '"') (many $ noneOf "\"")
+        return $ String xs
 
-parseList :: Parser LispVal
-parseList = liftM List $ sepEndBy parseExpr maybeWhitespace
-
-parseFullList :: Parser LispVal
-parseFullList = do
-  _ <- char '('
-  _ <- maybeWhitespace
-  x <- parseList
-  _ <- maybeWhitespace
-  _ <- char ')'
-  return x
-
-parseExpr :: Parser LispVal
-parseExpr =  parseAtom
-         <|> parseString
-         <|> parseNumber
-         <|> parseFullList
-
-parseExprMaybe :: Parser (Maybe LispVal)
-parseExprMaybe = do
-               x <- parseExpr
-               return $ Just x
-
-parseExprs :: Parser [LispVal]
-parseExprs = sepBy1 (parseExpr) maybeWhitespace
+pInt :: Parser Stmt
+pInt = liftM (Number . read) $ some digit

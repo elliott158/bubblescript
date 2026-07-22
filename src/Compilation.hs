@@ -18,4 +18,4 @@ showParse (Right x) = concat $ map show x
 compileCode :: String -> Env
 compileCode code = case parseCode code of
                  Right val -> (codegen emptyEnv val)
-                 Left _ -> emptyEnv
+                 Left er -> error (show er)

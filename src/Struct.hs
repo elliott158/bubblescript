@@ -1,14 +1,14 @@
 module Struct where
 
-data LispVal = Atom String
-             | List [LispVal]
-             | Number Integer
-             | String String
-             | Bool Bool
+data Stmt = Atom String
+          | List [Stmt]
+          | Number Integer
+          | String String
+          | Bool Bool
 
 data Env = Env {
        generated :: String
-     , inputEnv :: Maybe LispVal
+     , inputEnv :: Maybe Stmt
      , includes :: [String]
 }
 
@@ -17,9 +17,9 @@ emptyEnv = Env {generated = "", inputEnv = Nothing, includes = []}
 
 instance Show Env where show = generated
 
-instance Show LispVal where show = showVal
+instance Show Stmt where show = showVal
 
-showVal :: LispVal -> String
+showVal :: Stmt -> String
 showVal (String contents) = "\"" ++ contents ++ "\""
 showVal (Atom name) = name
 showVal (Number contents) = show contents
@@ -27,5 +27,5 @@ showVal (Bool True) = "true"
 showVal (Bool False) = "false"
 showVal (List contents) = "(" ++ unwordsList contents ++ ")"
 
-unwordsList :: [LispVal] -> String
+unwordsList :: [Stmt] -> String
 unwordsList = unwords . map showVal

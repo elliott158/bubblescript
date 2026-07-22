@@ -16,7 +16,7 @@ executable bubble
     
     build-depends:
       base,
-      parsec
+      megaparsec
 
     ghc-options: -Wall -Werror -Wcompat -Worphans -Wno-unused-top-binds
     
