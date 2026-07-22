@@ -31,12 +31,12 @@ sc = L.space (void spaceChar) lineC blockC
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
 
-surround :: Parser a -> Parser a
-surround p = do
-         _ <- sc
-         x <- p
-         _ <- sc
-         return x
+parseCode :: Input -> Either (ParseErrorBundle Input Error) [Stmt]
+parseCode = parse (exprs <* eof) "<lisp>"
+-- parseCode = parse (sc *> exprs <* eof) "<lisp>"
+
+exprs :: Parser [Stmt]
+exprs = some expr
 
 expr :: Parser Stmt
 expr = try pList
@@ -60,9 +60,7 @@ pAtom = do
      return $ Atom $ x
 
 pString :: Parser Stmt -- function name string is taken
-pString = do
-        xs <- between (char '"') (char '"') (many $ noneOf "\"")
-        return $ String xs
+pString = String <$> between (char '"') (char '"') (many $ noneOf "\"")
 
 pInt :: Parser Stmt
 pInt = liftM (Number . read) $ some digit
