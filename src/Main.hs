@@ -8,11 +8,16 @@ import Compilation
 import Struct
 import Codegen
 
-outputCompiled :: Env -> IO ()
-outputCompiled compiled = do
+getOutputFileName :: String -> String
+--trims off the file extension and replaces it with .hs
+getOutputFileName file = concat [(fst $ span (/= '.') file), ".hs"]
+
+outputCompiled :: String -> Env -> IO ()
+outputCompiled file compiled = do
                included <- includeFiles compiled
                let includedCode = show $ compileCode included
-               putStrLn $ concat [includedCode, show compiled]
+               let toWrite = getOutputFileName file
+               writeFile toWrite $ concat [includedCode, show compiled]
 
 usage :: String
 usage = "Usage:\nbubble [options] [input files]"
@@ -27,4 +32,4 @@ main = do
        (Nothing) -> dieUsage "Not enough arguments."
        (Just file) -> do
           code <- readFile file
-          outputCompiled $ compileCode code
+          outputCompiled file $ compileCode code
