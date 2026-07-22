@@ -1,4 +1,4 @@
-module Lexer where
+module Lexer (parseCode) where
 
 import Struct (Stmt(..))
 
@@ -45,7 +45,7 @@ expr = try pList
    <|> try pInt
 
 parens :: Parser a -> Parser a
-parens = between (lexeme $ char '(') (lexeme $ char ')')
+parens = between (char '(') (char ')')
 
 pList :: Parser Stmt
 pList = parens insideList
@@ -54,7 +54,7 @@ pList = parens insideList
 
 pAtom :: Parser Stmt
 pAtom = do
-     first <- letter
+     first <- letter <|> symbol
      rest <- some $ letter <|> digit <|> symbol
      let x = first:rest
      return $ Atom $ x

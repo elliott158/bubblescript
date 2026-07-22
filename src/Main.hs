@@ -1,7 +1,5 @@
 module Main where
 
-import System.Environment (getArgs)
-
 import Compilation
 import Struct
 import Codegen
@@ -15,7 +13,4 @@ outputCompiled compiled = do
 main :: IO ()
 main = do
   code <- getContents
-  args <- getArgs
-  if ("-p" `elem` args)
-  then (putStrLn $ showParse $ parseCode code)
-  else (outputCompiled $ compileCode code)
+  outputCompiled $ compileCode code
