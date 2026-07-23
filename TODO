@@ -1,6 +1,7 @@
 
-Including files. Status: Done
-Add comment parsing. Status: Done
-Do notation support. Status: Done
-Haskell interop. Status: Not Started
-Macros. Status: Not Started
+Including files. Done
+Add comment parsing. Done
+Do notation support. Done
+Haskell interop. Not Started
+Macros. Not Started
+Strings and Lists. Not Started
