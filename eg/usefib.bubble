@@ -1,6 +1,7 @@
 (include fibonacci.bubble)
 
 (defun main () (
+       (do 
        (print (fib 1))
        (print (fib 2))
-       (print (fib 3))))
+       (print (fib 3)))))

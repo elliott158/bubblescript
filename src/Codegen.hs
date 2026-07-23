@@ -55,6 +55,12 @@ unwrapInputEnv env = case (inputEnv env) of
                Just x -> x
                Nothing -> error "Env without input."
 
+tb :: String
+tb = take 4 $ repeat ' '
+
+addTab :: String -> String
+addTab = (++ tb)
+
 showHs :: Env -> Env
 showHs env = case (unwrapInputEnv env) of
        (Atom x) -> outputEnv env $ x
@@ -77,7 +83,8 @@ showHs env = case (unwrapInputEnv env) of
              (Atom "!") -> outputEnv env $ wrapParens $ "not " ++ (showHsEnv env $ args !! 0)
 
              (Atom "include") -> addIncludes env $ showHsEnv env $ args !! 0
-             
+
+             (Atom "do") -> outputEnv env $ concat ["do\n",tb, concat $ map addTab (mapShowHs env $ args)]
              (Atom "print") -> outputEnv env $ concat ["print ", showHsEnv env (args !! 0), "\n"]
              (Atom "defun") -> outputEnv env $ defun env args
 
